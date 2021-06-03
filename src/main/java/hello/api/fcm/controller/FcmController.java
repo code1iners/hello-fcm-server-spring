@@ -1,29 +1,41 @@
 package hello.api.fcm.controller;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
-import hello.api.fcm.dto.Note;
-import hello.api.fcm.service.FcmService;
+import hello.api.fcm.dto.fcm.FcmMessageDto;
+import hello.api.fcm.dto.fcm.FcmTargetOs;
+import hello.api.fcm.service.fcm.FcmServiceAndroid;
+import hello.api.fcm.service.fcm.FcmServiceIos;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static hello.api.fcm.dto.fcm.FcmTargetOs.ANDROID;
+import static hello.api.fcm.dto.fcm.FcmTargetOs.IOS;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class FcmController {
 
-    private final FcmService fcmService;
+    private final FcmServiceAndroid fcmServiceAndroid;
+    private final FcmServiceIos fcmServiceIos;
 
+    /**
+     * <h3>Send.</h3>
+     * <p>Send Firebase Cloud Message.</p>
+     */
     @PostMapping(value = "/push/send")
-    public String send(
-            @RequestBody Note note,
-            @RequestParam String topic
-                       ) throws FirebaseMessagingException {
-        return fcmService.send(note, topic);
-    }
+    public Map<String, String> send(
+            @RequestBody FcmMessageDto fcmMessageDto,
+            @RequestParam String kind) throws FirebaseMessagingException {
+        HashMap<String, String> result = new HashMap<>();
+        result.put(ANDROID.name(), fcmServiceAndroid.send(fcmMessageDto, kind));
+        result.put(IOS.name(), fcmServiceIos.send(fcmMessageDto, kind));
 
+        return result;
+    }
 }
